@@ -237,7 +237,7 @@ if st.session_state.is_server and st.session_state.authenticated:
            #             st.session_state.serial_port,
             #            st.session_state.serial_baud,
              #           st.session_state.serial_format
-                    ),
+                 #   ),
               #      daemon=True
                # )
                 #st.session_state.reading_thread.start()
