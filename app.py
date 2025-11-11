@@ -7,7 +7,6 @@ import time
 from datetime import datetime
 import threading
 import plotly.express as px
-import os
 
 # Importar módulos locales
 from src.config import PRODUCT_TO_WEIGHT, TRAY_WEIGHTS
@@ -15,10 +14,6 @@ from src.balance_reader import continuous_reading, probar_factor_escala  # ← A
 from src.data_manager import load_config, save_config, load_password, save_password
 from src.utils import read_realtime_data, write_realtime_data
 
-
-
-# ← NUEVO: Detectar si está en Streamlit Cloud
-IS_STREAMLIT_CLOUD = os.environ.get('STREAMLIT_SERVER_ADDRESS') is not None
 # Configuración de página
 st.set_page_config(
     page_title="Sistema de Pesaje Industrial",
@@ -130,29 +125,12 @@ if not st.session_state.is_server or not st.session_state.authenticated:
         st.sidebar.info("🔒 Seleccione 'Servidor' y luego ingrese la contraseña")
 
 # Controles de servidor
-#if st.session_state.is_server and st.session_state.authenticated:
- #   st.sidebar.success("🖥️ Modo SERVIDOR activo")
-    
-  #  if st.sidebar.button("🔐 Cambiar Contraseña"):
-   #     st.session_state.show_password_change = True
-    # Controles de servidor - MODIFICADO
 if st.session_state.is_server and st.session_state.authenticated:
+    st.sidebar.success("🖥️ Modo SERVIDOR activo")
     
-    # ← NUEVO: Mostrar modo según ubicación
-    if IS_STREAMLIT_CLOUD:
-        st.sidebar.warning("🌐 Modo Cloud - Conectado al servidor local")
-        st.sidebar.info("""
-        **Configuración:**
-        - Servidor local ejecutándose
-        - Datos en tiempo real
-        - Solo lectura en cloud
-        """)
-    else:
-        st.sidebar.success("💻 Modo Local - Control directo de balanza")
-    
-    # Mantener el resto de controles igual...
     if st.sidebar.button("🔐 Cambiar Contraseña"):
         st.session_state.show_password_change = True
+    
     if st.session_state.get('show_password_change', False):
         st.sidebar.markdown("### Cambiar Contraseña")
         new_password = st.sidebar.text_input("Nueva Contraseña", type="password")
@@ -191,65 +169,30 @@ if st.session_state.is_server and st.session_state.authenticated:
         index=[9600, 19200, 38400].index(st.session_state.serial_baud))
     st.session_state.serial_format = st.sidebar.selectbox("Formato", ["el05", "cond"], 
         index=["el05", "cond"].index(st.session_state.serial_format))
-
+    
     col1, col2 = st.sidebar.columns(2)
     with col1:
-        # ← MODIFICADO: Deshabilitar controles en Cloud
-        if IS_STREAMLIT_CLOUD:
-            st.button("Iniciar", key="start_btn", disabled=True, 
-                     help="⛔ Control solo disponible en modo local")
-        else:
-            if st.button("Iniciar", key="start_btn", disabled=is_reading):
-                write_realtime_data(0.0, True, "Iniciando...")
-                
-                if st.session_state.reading_thread is None or not st.session_state.reading_thread.is_alive():
-                    st.session_state.reading_thread = threading.Thread(
-                        target=continuous_reading,
-                        args=(
-                            st.session_state.serial_port,
-                            st.session_state.serial_baud,
-                            st.session_state.serial_format
-                        ),
-                        daemon=True
-                    )
-                    st.session_state.reading_thread.start()
-                
-                st.rerun()
+        if st.button("Iniciar", key="start_btn", disabled=is_reading):
+            write_realtime_data(0.0, True, "Iniciando...")
+            
+            if st.session_state.reading_thread is None or not st.session_state.reading_thread.is_alive():
+                st.session_state.reading_thread = threading.Thread(
+                    target=continuous_reading,
+                    args=(
+                        st.session_state.serial_port,
+                        st.session_state.serial_baud,
+                        st.session_state.serial_format
+                    ),
+                    daemon=True
+                )
+                st.session_state.reading_thread.start()
+            
+            st.rerun()
     
     with col2:
-        # ← MODIFICADO: Deshabilitar controles en Cloud
-        if IS_STREAMLIT_CLOUD:
-            st.button("⏹️ Detener", disabled=True,
-                     help="⛔ Control solo disponible en modo local")
-        else:
-            if st.button("⏹️ Detener", disabled=not is_reading):
-                write_realtime_data(0.0, False, "Detenido")
-                st.rerun()
-   # col1, col2 = st.sidebar.columns(2)
-    #with col1:
-     #   if st.button("Iniciar", key="start_btn", disabled=is_reading):
-      #      write_realtime_data(0.0, True, "Iniciando...")
-            
-       #     if st.session_state.reading_thread is None or not st.session_state.reading_thread.is_alive():
-        #        st.session_state.reading_thread = threading.Thread(
-         #           target=continuous_reading,
-          #          args=(
-           #             st.session_state.serial_port,
-            #            st.session_state.serial_baud,
-             #           st.session_state.serial_format
-                 #   ),
-              #      daemon=True
-               # )
-                #st.session_state.reading_thread.start()
-            
-            #st.rerun()
-    
-    #with col2:
-     #   if st.button("⏹️ Detener", disabled=not is_reading):
-      #      write_realtime_data(0.0, False, "Detenido")
-       #     st.rerun()
-
-
+        if st.button("⏹️ Detener", disabled=not is_reading):
+            write_realtime_data(0.0, False, "Detenido")
+            st.rerun()
     
     if st.sidebar.button("🚪 Cerrar Sesión Servidor"):
         st.session_state.authenticated = False
