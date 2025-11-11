@@ -1,0 +1,18 @@
+{
+  "current_history": [
+    {
+      "producto": "CREMOSO LAS TRES ESTRELLAS",
+      "cajas": 0,
+      "bandeja": "Bandeja de Cremoso",
+      "cant_bandeja": 0,
+      "pallet": 0.0,
+      "bruto": 202.42,
+      "neto": 202.42,
+      "lote": "",
+      "hormas": 200,
+      "timestamp": "2025-11-11 07:25:21"
+    }
+  ],
+  "expeditions": [],
+  "last_product": "CREMOSO LAS TRES ESTRELLAS"
+}
