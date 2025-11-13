@@ -45,7 +45,7 @@ def parse_cond(line_bytes):
 
 def continuous_reading(port, baud, formato):
     import random
-    SIMULATE = False
+    SIMULATE = True
 
     if SIMULATE:
         while True:
